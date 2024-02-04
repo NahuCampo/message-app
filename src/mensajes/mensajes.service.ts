@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Mensaje } from './entities/mensaje.entity';
 import { Repository } from 'typeorm';
 import { CreateMensajeDto } from './dto/create-mensaje-dto/create-mensaje-dto';
+import { promises } from 'dns';
 
 @Injectable()
 export class MensajesService {
@@ -10,10 +11,11 @@ export class MensajesService {
         @InjectRepository(Mensaje)
         private readonly mensajeRepository: Repository<Mensaje>,
     ) {}
-    async getAll(){
+
+    async getAll():Promise<Mensaje[]>{
         return await this.mensajeRepository.find();
     }
-    async createMensaje(mensajeNuevo: CreateMensajeDto){
+    async createMensaje(mensajeNuevo: CreateMensajeDto): Promise<Mensaje>{
         const nuevo  = new Mensaje();
         nuevo.mensaje = mensajeNuevo.mensaje;
         nuevo.nick = mensajeNuevo.nick;
@@ -21,15 +23,18 @@ export class MensajesService {
         return this.mensajeRepository.save(nuevo); //Await seguramente
     }
 
-    async updateMensaje(idMensaje: number, mensajeActualizar: CreateMensajeDto){
-        const mensajeUpdate = await this.mensajeRepository.findOne(idMensaje)//Revisar
+    async updateMensaje(id: number, mensajeActualizar: CreateMensajeDto): Promise<Mensaje>{
+        const mensajeUpdate = await this.mensajeRepository.findOne({
+            where: {
+                id:id
+            }});
         mensajeUpdate.nick = mensajeActualizar.nick;
         mensajeUpdate.mensaje = mensajeActualizar.mensaje;
 
         return this.mensajeRepository.save(mensajeUpdate)
     }
 
-    async deleteMensaje(idMensaje: number){
+    async deleteMensaje(idMensaje: number): Promise<any>{
         return this.mensajeRepository.delete(idMensaje);
     }
 
